@@ -1,0 +1,27 @@
+name: Build Kernel Manual 4.4
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y bc bison flex libssl-dev libelf-dev zstd gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+      - name: Download Neutron clang
+        run: |
+          curl -L -o clang.tar.zst https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/06092026/neutron-clang-06092026.tar.zst
+          mkdir -p clang
+          tar --use-compress-program=unzstd -xf clang.tar.zst -C clang
+      - name: Build kernel
+        run: |
+          export PATH=$PWD/clang/bin:$PATH
+          export ARCH=arm64
+          make O=out whyred_defconfig
+          make -j$(nproc) O=out ARCH=arm64 CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LLVM=1 LLVM_IAS=1 Image.gz-dtb
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Image-gz-dtb-44
+          path: out/arch/arm64/boot/Image.gz-dtb
