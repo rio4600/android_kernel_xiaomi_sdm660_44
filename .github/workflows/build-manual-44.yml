@@ -14,6 +14,9 @@ jobs:
           curl -L -o clang.tar.zst https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/06092026/neutron-clang-06092026.tar.zst
           mkdir -p clang
           tar --use-compress-program=unzstd -xf clang.tar.zst -C clang
+      - name: Patch ReSukiSU
+        run: |
+          curl -LSs "https://raw.githubusercontent.com/Baka-SU/BakaSU/main/kernel/setup.sh" | bash -s 9d0ff6ae
       - name: Build kernel
         run: |
           export PATH=$PWD/clang/bin:$PATH
